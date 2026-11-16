@@ -1,0 +1,23 @@
+name: salmonella-amr
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+dependencies:
+  # versions are intentionally not pinned yet; they will be pinned after the first tested install
+  - python
+  - pandas
+  - numpy
+  - scipy
+  - scikit-learn
+  - matplotlib
+  - seaborn
+  - jupyterlab
+  - biopython
+  - pytest
+  - snakemake
+  - fastp
+  - spades
+  - quast
+  - seqkit
+  - ncbi-amrfinderplus

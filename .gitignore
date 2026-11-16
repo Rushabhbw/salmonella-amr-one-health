@@ -1,0 +1,17 @@
+# data (large files are not committed)
+data/raw/*
+data/interim/*
+data/processed/*
+!data/**/.gitkeep
+# python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.pytest_cache/
+# environments and workflow
+.snakemake/
+.venv/
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
