@@ -1,0 +1,16 @@
+# Lean environment for Step 4 (download assemblies, run AMRFinderPlus, summarise).
+# Create:  mamba env create -f envs/step4_amr.yml
+# Versions are deliberately not pinned yet; the tested versions are recorded in
+# data/interim/amrfinder_local/versions.txt after the first run, and pinned later.
+name: salmonella-amr-tools
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+dependencies:
+  - python
+  - pandas
+  - ncbi-amrfinderplus
+  - ncbi-datasets-cli
+  - seqkit
+  - unzip
