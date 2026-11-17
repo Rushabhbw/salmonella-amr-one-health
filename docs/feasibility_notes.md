@@ -52,3 +52,18 @@ Observation to check: several top clinical rows show an empty Assembly column, s
 - Host balance: clinical isolates are only about 2-5% of AST isolates (about 270-300 per drug for the core antibiotics). A host-vs-host comparison with equal groups is not possible, so RQ3 was changed to a transfer test (train non-clinical, test clinical) and the comparison became a secondary descriptive question.
 - Clinical isolates come from many countries, serotypes (e.g. Typhi, Typhimurium, Luciana, Saintpaul) and sources, so host group is confounded with serotype, place and study.
 - NCBI AST values are submitter-supplied; label noise is a stated limitation.
+
+## D. What the full-column test download showed (ceftriaxone R, 51 columns, 16 Nov 2026)
+Checked with code on `ceftriaxone_R_1.tsv`: 1,235 rows (matches the browser count), same isolates as the 17-column file, and every row has ceftriaxone=R in its AST column.
+
+- **Labels:** the `AST phenotypes` column lists every tested antibiotic for each isolate as `drug=S/R/I/NS/ND`. Labels for all drugs can therefore be built from this column. Planned rule: S = 0, R = 1; I, NS and ND are excluded for that drug and counted in the report. Most isolates have 14-15 drugs tested. The column has no MIC values or test method, so label noise cannot be examined further.
+- **Time:** `Collection date` has values for 1,224 of 1,235 isolates (2002-2024). `Create date` is the NCBI record date, not the sampling date.
+- **Study effect:** 22 BioProjects; the largest holds 598 of 1,235 isolates (48%). Candidate validation schemes: grouped by SNP cluster, by time, by BioProject.
+- **Assembly QC columns:** `N50`, `Length`, `Contigs`. In this file: length 4.63-5.45 Mb, contigs 1-320, N50 31 kb to 5.1 Mb. Assemblers are mixed (SKESA 1,052; CLC 98; long-read assemblers about 64). Proposed filters will be set in the curation step.
+- **AMR calls:** `AMR genotypes core` lists resistance genes only; `AMR genotypes` also lists stress/efflux genes (e.g. mdsA, mdsB). Call types: COMPLETE, POINT (mutations; 335 isolates), PARTIAL_END_OF_CONTIG, PARTIAL, MISTRANSLATION, HMM. Rule for PARTIAL calls to be decided and documented.
+- **Reproducibility:** NCBI's AMR results come from two AMRFinderPlus versions (4.2.5 for 1,189 isolates, 4.2.7 for 46). A local re-run with a single version on a subset is therefore justified.
+- **Host and source fields:** `Host` is empty for 97% and `Source type` for 56%; `IFSAC category` for 66%. The free-text `Isolation source` (26 missing) will need a documented mapping to categories.
+- **Duplicates:** one BioSample (strain CVM N45955, Dublin) appears twice under different isolate IDs; duplicates will be removed.
+- **Geography:** 1,214 of 1,235 isolates are labelled USA (98%). Conclusions apply to US surveillance data.
+- **Assemblies:** 14 of 1,235 have no assembly accession (5 of 51 clinical; 9 of 1,184 non-clinical).
+- **Rough sanity check (not a result):** about 96.7% of these ceftriaxone-resistant isolates carry at least one gene from a hand-picked AmpC/ESBL list. Only the resistant class was examined, so false-alarm behaviour is unknown.
