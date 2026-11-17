@@ -2,9 +2,9 @@
 
 **Title:** Resistome profiling and machine-learning prediction of antimicrobial resistance in livestock/food-associated and human-associated *Salmonella enterica*: a reproducible One Health workflow
 
-**Author:** Rushabh Wakade  |  **Version:** 0.2 (scope locked after feasibility check)  |  **Date:** 16 Nov 2026
+**Author:** Rushabh Wakade  |  **Version:** 0.3 (updated after data curation and the AMRFinderPlus pilot)  |  **Date:** 16 Nov 2026
 
-> Status: scope locked on 16 Nov 2026 using NCBI Isolates Browser counts recorded in `feasibility_notes.md`. Assembly availability is still to be verified in the data-curation step. No results are claimed in this document.
+> Status: scope locked on 16 Nov 2026 and updated on 17 Nov 2026 with the curated dataset (9,783 isolates) and the first local AMRFinderPlus pilot. Counts are in `reports/curation_report.md` and `docs/feasibility_notes.md`. No model results are claimed in this document.
 
 ## 1. Background and problem statement
 Antimicrobial resistance (AMR) spreads between animals, food and people, so it is studied under the One Health idea. Surveillance programmes (for example NARMS in the USA) test bacterial isolates in the laboratory and also sequence their genomes, which creates public datasets that pair genomes with resistance results. Rule-based tools such as AMRFinderPlus detect known resistance genes and mutations, but a detected gene does not always mean a resistant bacterium, and rules can miss unknown mechanisms. Machine learning can learn patterns from many labelled genomes, but results are easily inflated when closely related isolates appear in both training and test data. This project builds a transparent, reproducible workflow that compares a rule-based baseline with machine-learning models for predicting resistance, and compares resistance profiles between livestock/food-associated and human-associated isolates.
@@ -36,7 +36,7 @@ Antimicrobial resistance (AMR) spreads between animals, food and people, so it i
 ## 6. Methods overview (short)
 - **Data curation:** filter to isolates with assembly + AST + usable host/source; harmonise labels (S/I/R -> resistant vs not resistant, rule written down); define host categories from the source field with a documented mapping.
 - **Preprocessing/QC:** assembly quality checks (size, contig count, N50), removal of failed assemblies.
-- **AMR detection:** AMRFinderPlus on assemblies (full set if feasible, otherwise precomputed NCBI results for the full set plus a local re-run on a subset to demonstrate and cross-check the pipeline).
+- **AMR detection:** NCBI's stored AMRFinderPlus core results for all curated isolates (used as features), plus a local re-run with a single software and database version on a 300-isolate subset to check agreement (pilot of 20 done).
 - **Baseline:** gene/mutation -> phenotype rules; report accuracy, sensitivity, specificity, major errors and very major errors.
 - **ML:** logistic regression, random forest, gradient boosting on presence/absence features; nested or grouped cross-validation; metrics suited to imbalance (PR-AUC, MCC, balanced accuracy); feature importance reported with caution.
 - **Statistics:** host-category comparison with appropriate tests, multiple-testing correction (BH-FDR), effect sizes.
@@ -50,7 +50,11 @@ Antimicrobial resistance (AMR) spreads between animals, food and people, so it i
 ## 7b. Scope decisions (v0.2)
 - Organism: *Salmonella enterica* (NCBI taxgroup).
 - Core antibiotics: tetracycline, ampicillin, ceftriaxone.
-- Exploratory only: ciprofloxacin (resistant isolates are dominated by one SNP cluster, so evaluation is at cluster level and clearly caveated).
+- Exploratory only: ciprofloxacin. After curation there are only 12 resistant human clinical isolates, from 7 groups, so it cannot be used in the human transfer test (RQ3). It is evaluated only with cluster-grouped cross-validation inside the non-clinical data, and reported with that caveat.
+- Curated dataset: 9,783 isolates (288 human clinical, 9,495 non-clinical; about 85% of the non-clinical group is poultry; about 97% are from the USA).
+- Human clinical resistant isolates available for RQ3: tetracycline 147, ampicillin 131, ceftriaxone 46 (from 25 groups). Confidence intervals for ceftriaxone will be wide and are reported as such.
+- Labels come from the `AST phenotypes` column: S = 0, R = 1; I, NS, ND and missing values are excluded for that drug.
+- Features: presence/absence of AMRFinderPlus core elements from NCBI's stored results, checked against a local re-run (one software and one database version) on a 300-isolate subset, because NCBI's stored results mix 2 software versions and 5 database versions.
 - Dropped: trimethoprim-sulfamethoxazole (too few independent resistant clusters; one cluster holds most resistant isolates).
 - Host categories: "clinical" vs "environmental/other" as defined by NCBI isolation type. The clinical group is small (about 2-5% of AST isolates), so it is used mainly as an independent test set.
 - Unit of independent evidence is the SNP cluster; splits are grouped by cluster.

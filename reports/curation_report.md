@@ -1,6 +1,6 @@
 # Metadata curation report
 
-Generated: 2026-11-17 09:31  
+Generated: 2026-11-17 14:49  
 Script: `workflow/scripts/01_curate_metadata.py`  
 Raw files: ampicillin_R.tsv, ampicillin_S.tsv, ceftriaxone_R.tsv, ceftriaxone_S.tsv, tetracycline_R.tsv, tetracycline_S.tsv
 
@@ -119,6 +119,16 @@ AMRFinderPlus versions used by NCBI:
 |---|---|
 | 4.2.5 | 9242 |
 | 4.2.7 | 541 |
+
+Reference gene catalog (database) versions used by NCBI:
+
+| catalog_version | n |
+|---|---|
+| 2025-12-03.1 | 9242 |
+| 2026-08-07.1 | 471 |
+| 2026-05-15.1 | 66 |
+| 2026-01-21.1 | 3 |
+| 2026-03-24.1 | 1 |
 
 ## 6. Source text that could not be grouped confidently (top 15)
 

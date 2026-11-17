@@ -229,6 +229,7 @@ def curate(raw):
     out["contigs"] = merged["Contigs"]
     out["assembler"] = merged["Method"]
     out["amrfinder_version"] = merged["AMRFinderPlus version"]
+    out["amrfinder_catalog_version"] = merged["PD Ref Gene Catalog version"]
     for d in ALL_DRUGS:
         calls = ast.apply(lambda x, d=d: x.get(d))
         out[f"ast_{d}"] = calls
@@ -299,6 +300,7 @@ def write_report(path, log, removed, curated, mapping, problems, raw_files):
     L.append("BioProjects (top 5 of %d):\n\n" % curated["bioproject"].nunique() + md_table(curated["bioproject"].value_counts().head(5).rename_axis("bioproject").reset_index(name="n")) + "\n")
     L.append("Assemblers (top 5):\n\n" + md_table(curated["assembler"].fillna("missing").value_counts().head(5).rename_axis("assembler").reset_index(name="n")) + "\n")
     L.append("AMRFinderPlus versions used by NCBI:\n\n" + md_table(curated["amrfinder_version"].fillna("missing").value_counts().rename_axis("version").reset_index(name="n")) + "\n")
+    L.append("Reference gene catalog (database) versions used by NCBI:\n\n" + md_table(curated["amrfinder_catalog_version"].fillna("missing").value_counts().rename_axis("catalog_version").reset_index(name="n")) + "\n")
     L.append("## 6. Source text that could not be grouped confidently (top 15)\n")
     unclear = mapping[mapping["source_category"].isin(["other_or_unclear", "poultry_unspecified", "unknown"])].head(15)
     L.append(md_table(unclear[["isolation_source_clean", "source_category", "n_isolates"]]) + "\n" if len(unclear) else "None.\n")

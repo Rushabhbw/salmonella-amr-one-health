@@ -61,9 +61,17 @@ Checked with code on `ceftriaxone_R_1.tsv`: 1,235 rows (matches the browser coun
 - **Study effect:** 22 BioProjects; the largest holds 598 of 1,235 isolates (48%). Candidate validation schemes: grouped by SNP cluster, by time, by BioProject.
 - **Assembly QC columns:** `N50`, `Length`, `Contigs`. In this file: length 4.63-5.45 Mb, contigs 1-320, N50 31 kb to 5.1 Mb. Assemblers are mixed (SKESA 1,052; CLC 98; long-read assemblers about 64). Proposed filters will be set in the curation step.
 - **AMR calls:** `AMR genotypes core` lists resistance genes only; `AMR genotypes` also lists stress/efflux genes (e.g. mdsA, mdsB). Call types: COMPLETE, POINT (mutations; 335 isolates), PARTIAL_END_OF_CONTIG, PARTIAL, MISTRANSLATION, HMM. Rule for PARTIAL calls to be decided and documented.
-- **Reproducibility:** NCBI's AMR results come from two AMRFinderPlus versions (4.2.5 for 1,189 isolates, 4.2.7 for 46). A local re-run with a single version on a subset is therefore justified.
+- **Reproducibility:** NCBI's stored AMR results come from two AMRFinderPlus software versions and five reference-gene-catalog (database) versions. After curation (9,783 isolates): software 4.2.5 for 9,242 and 4.2.7 for 541; catalog 2025-12-03.1 for 9,242, 2026-08-07.1 for 471, 2026-05-15.1 for 66, 2026-01-21.1 for 3, 2026-03-24.1 for 1. A local re-run with a single version on a subset is therefore justified.
 - **Host and source fields:** `Host` is empty for 97% and `Source type` for 56%; `IFSAC category` for 66%. The free-text `Isolation source` (26 missing) will need a documented mapping to categories.
 - **Duplicates:** one BioSample (strain CVM N45955, Dublin) appears twice under different isolate IDs; duplicates will be removed.
 - **Geography:** 1,214 of 1,235 isolates are labelled USA (98%). Conclusions apply to US surveillance data.
 - **Assemblies:** 14 of 1,235 have no assembly accession (5 of 51 clinical; 9 of 1,184 non-clinical).
 - **Rough sanity check (not a result):** about 96.7% of these ceftriaxone-resistant isolates carry at least one gene from a hand-picked AmpC/ESBL list. Only the resistant class was examined, so false-alarm behaviour is unknown.
+
+## E. Local AMRFinderPlus pilot (20 isolates, 17 Nov 2026)
+- Tools in WSL (Ubuntu): AMRFinderPlus software 4.2.7, database 2026-10-29.1, NCBI datasets 18.41.1.
+- Subset: 300 isolates chosen with seed 42 (100 human clinical, 200 non-clinical, at most 3 per SNP-cluster group within each host group); pilot = first 20 (6 clinical, 14 non-clinical).
+- Download: 20 of 20 assemblies (29.5 MB package), 0 failures. 20 result tables produced with `amrfinder -n <assembly> -O Salmonella` (core elements only, no `--plus`).
+- First result inspected (isolate PDT000161115.2, human clinical): our run reports 5 distinct elements, tet(B), aph(6)-Id, aph(3'')-Ib, sul2 and blaTEM-1, each on two contigs (10 table rows). NCBI's stored string lists the same 5 elements once each. Element sets are identical. Copy number is therefore not comparable, and features will be presence/absence.
+- Our database (2026-10-29.1) is newer than the catalog used for 9,242 of the 9,783 curated isolates (2025-12-03.1), so small differences are expected and are not necessarily errors.
+- Concordance over all 20 isolates: to be recorded from `reports/amrfinder_concordance.md`.

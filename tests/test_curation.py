@@ -21,7 +21,7 @@ def row(isolate, biosample, assembly="auto", n50=100000, length=4_900_000, conti
         "Contigs": str(contigs), "AST phenotypes": ast, "Computed types": "antigen_formula=4:i:-,serotype=Typhimurium",
         "Serovar": None, "Location": "USA:NY", "Collection date": "2015-03-02", "BioProject": "PRJNA1",
         "Isolation type": itype, "Isolation source": source, "IFSAC category": ifsac, "SNP cluster": snp,
-        "Method": "SKESA v. 2.2", "AMRFinderPlus version": "4.2.5", "AMR genotypes core": "blaCMY-2=COMPLETE",
+        "Method": "SKESA v. 2.2", "AMRFinderPlus version": "4.2.5", "PD Ref Gene Catalog version": "2025-12-03.1", "AMR genotypes core": "blaCMY-2=COMPLETE",
         "source_file": src_file,
     }
 
