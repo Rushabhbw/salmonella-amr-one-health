@@ -151,6 +151,8 @@ def main(argv=None):
     per, disc, unmatched = run(a.amr_dir, a.metadata)
     vpath = Path(a.amr_dir) / "versions.txt"
     vtext = vpath.read_text(encoding="utf-8", errors="replace") if vpath.exists() else None
+    if vtext:  # keep local folder names (user name, paths) out of a report that is committed to GitHub
+        vtext = "\n".join(line for line in vtext.splitlines() if "directory:" not in line.lower())
     write_report(a.report, per, disc, unmatched, local_db_version(vpath), vtext)
     Path(a.table).parent.mkdir(parents=True, exist_ok=True)
     per.to_csv(a.table, sep="\t", index=False, lineterminator="\n")

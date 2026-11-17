@@ -45,7 +45,7 @@ def test_empty_result_file_means_no_elements(tmp_path):
 def test_end_to_end(tmp_path):
     amr = tmp_path / "amr"; amr.mkdir()
     (amr / "GCA_006497535.1.amrfinder.tsv").write_bytes(REAL.read_bytes())
-    (amr / "versions.txt").write_text("Database version: 2026-10-29.1\n", encoding="utf-8")
+    (amr / "versions.txt").write_text("Database directory: /home/someone/secret_folder/2026-10-29.1\nDatabase version: 2026-10-29.1\n", encoding="utf-8")
     meta = pd.DataFrame([{"assembly": "GCA_006497535.1", "isolate": "PDT000161115.2", "host_group": "clinical",
                           "serotype": "I 4", "amrfinder_version": "4.2.5", "amrfinder_catalog_version": "2025-12-03.1",
                           "amr_genes_core": NCBI}])
@@ -54,5 +54,6 @@ def test_end_to_end(tmp_path):
     code = ca.main(["--amr-dir", str(amr), "--metadata", str(mp), "--report", str(rep), "--table", str(tab)])
     assert code == 0
     text = rep.read_text(encoding="utf-8")
-    assert "Identical sets of resistance elements: 1 (100.0%)" in text and "2026-10-29.1" in text
+    assert "Identical sets of resistance elements: 1 (100.0%)" in text and "Database version: 2026-10-29.1" in text
+    assert "secret_folder" not in text
     assert pd.read_csv(tab, sep="\t")["identical"].all()
