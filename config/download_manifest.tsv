@@ -1,0 +1,7 @@
+file	query	expected_rows	expected_date	download_date	notes
+ceftriaxone_R.tsv	taxgroup_name:"Salmonella enterica" AND AST_phenotypes:ceftriaxone=R	1235	2026-11-16		browser count read on expected_date; all 51 columns ticked
+ceftriaxone_S.tsv	taxgroup_name:"Salmonella enterica" AND AST_phenotypes:ceftriaxone=S	8388	2026-11-16		browser count read on expected_date; all 51 columns ticked
+ampicillin_R.tsv	taxgroup_name:"Salmonella enterica" AND AST_phenotypes:ampicillin=R	2528	2026-11-16		browser count read on expected_date; all 51 columns ticked
+ampicillin_S.tsv	taxgroup_name:"Salmonella enterica" AND AST_phenotypes:ampicillin=S	7350	2026-11-16		browser count read on expected_date; all 51 columns ticked
+tetracycline_R.tsv	taxgroup_name:"Salmonella enterica" AND AST_phenotypes:tetracycline=R	4989	2026-11-16		browser count read on expected_date; all 51 columns ticked
+tetracycline_S.tsv	taxgroup_name:"Salmonella enterica" AND AST_phenotypes:tetracycline=S	4827	2026-11-16		browser count read on expected_date; all 51 columns ticked
