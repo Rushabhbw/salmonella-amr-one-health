@@ -1,6 +1,6 @@
 # Metadata curation report
 
-Generated: 2026-11-17 14:49  
+Generated: 2026-11-19 09:39  
 Script: `workflow/scripts/01_curate_metadata.py`  
 Raw files: ampicillin_R.tsv, ampicillin_S.tsv, ceftriaxone_R.tsv, ceftriaxone_S.tsv, tetracycline_R.tsv, tetracycline_S.tsv
 
@@ -30,7 +30,7 @@ Each raw file should contain only the class in its name according to its own AST
 
 No problems found: every row agrees with its file name.
 
-## 3. Labels per antibiotic (after curation)
+## 3. Labels per antibiotic (after curation, all isolates)
 
 | Antibiotic | Group | R (label 1) | S (label 0) | Excluded (I/NS/ND/missing) | R share | Clusters containing R |
 |---|---|---|---|---|---|---|
@@ -46,6 +46,25 @@ No problems found: every row agrees with its file name.
 | ciprofloxacin (exploratory) | all | 735 | 8771 | 277 | 7.7% | 78 |
 | ciprofloxacin (exploratory) | non_clinical | 723 | 8555 | 217 | 7.8% | 72 |
 | ciprofloxacin (exploratory) | clinical | 12 | 216 | 60 | 5.3% | 7 |
+
+## 3b. Labels per antibiotic, primary dataset only (catalog 2025-12-03.1; 9242 of 9783 isolates)
+
+The primary dataset uses isolates whose NCBI AMR results come from one software and one reference-gene-catalog version. The other isolates are kept for sensitivity analyses.
+
+| Antibiotic | Group | R (label 1) | S (label 0) | Excluded (I/NS/ND/missing) | R share | Clusters containing R |
+|---|---|---|---|---|---|---|
+| tetracycline | all | 4718 | 4476 | 48 | 51.3% | 501 |
+| tetracycline | non_clinical | 4573 | 4363 | 36 | 51.2% | 462 |
+| tetracycline | clinical | 145 | 113 | 12 | 56.2% | 71 |
+| ampicillin | all | 2363 | 6879 | 0 | 25.6% | 313 |
+| ampicillin | non_clinical | 2234 | 6738 | 0 | 24.9% | 279 |
+| ampicillin | clinical | 129 | 141 | 0 | 47.8% | 59 |
+| ceftriaxone | all | 1177 | 7974 | 91 | 12.9% | 198 |
+| ceftriaxone | non_clinical | 1132 | 7750 | 90 | 12.7% | 185 |
+| ceftriaxone | clinical | 45 | 224 | 1 | 16.7% | 25 |
+| ciprofloxacin (exploratory) | all | 603 | 8372 | 267 | 6.7% | 29 |
+| ciprofloxacin (exploratory) | non_clinical | 592 | 8168 | 212 | 6.8% | 23 |
+| ciprofloxacin (exploratory) | clinical | 11 | 204 | 55 | 5.1% | 7 |
 
 ## 4. Independent groups (SNP clusters)
 

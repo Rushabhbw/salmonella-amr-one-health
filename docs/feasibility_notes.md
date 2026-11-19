@@ -75,3 +75,19 @@ Checked with code on `ceftriaxone_R_1.tsv`: 1,235 rows (matches the browser coun
 - First result inspected (isolate PDT000161115.2, human clinical): our run reports 5 distinct elements, tet(B), aph(6)-Id, aph(3'')-Ib, sul2 and blaTEM-1, each on two contigs (10 table rows). NCBI's stored string lists the same 5 elements once each. Element sets are identical. Copy number is therefore not comparable, and features will be presence/absence.
 - Our database (2026-10-29.1) is newer than the catalog used for 9,242 of the 9,783 curated isolates (2025-12-03.1), so small differences are expected and are not necessarily errors.
 - Concordance over all 20 pilot isolates: 20 of 20 have identical sets of resistance elements (mean Jaccard 1.000). Their NCBI catalog versions were 2025-12-03.1 (17 isolates) and 2026-05-15.1 (3); none used our newer database. With 0 differences in 20 isolates, the true difference rate could still be as high as about 15% (rule of three: 3/20), so the 300-isolate run is needed before claiming the stored results are reproducible.
+
+## F. Local AMRFinderPlus run on 300 isolates (17 Nov 2026)
+- Our run: AMRFinderPlus 4.2.7, database 2026-10-29.1, `amrfinder -n <assembly> -O Salmonella` (core elements only). 300 of 300 genomes processed.
+- Agreement with NCBI's stored results: 295 of 300 isolates have identical sets of resistance elements (98.3%); mean Jaccard 0.995. The 95% confidence interval for the difference rate is 0.7-3.8%. The subset is stratified (100 clinical, 200 non-clinical, at most 3 per cluster group within each host group), so it is not a random sample of all 9,783 isolates.
+- The five differing isolates (all had catalog 2025-12-03.1 in NCBI's result):
+  - dfrA51 only in NCBI's result (COMPLETE): PDT000161187.2 and PDT000161200.2 (clinical, serotype Potsdam, same BioProject, USA, 2014)
+  - gar only in NCBI's result (HMM call): PDT000121333.2 (non-clinical)
+  - mrx(A) only in our result (EXACTX): PDT000598976.1 (clinical, Stanley)
+  - ramR_Q19Ter only in our result (POINTX): PDT000598974.1 (clinical, Senftenberg)
+- None of the five differences involves a beta-lactamase or tetracycline-resistance gene, so no effect is expected on the three core antibiotics in this sample.
+- 4 of the 5 differing isolates are clinical (4 of 100 clinical vs 1 of 200 non-clinical; Fisher exact p = 0.044). This is a post-hoc observation from small numbers and is treated as a hypothesis only.
+- Explanation not yet verified: both directions (elements lost and gained) point to database changes between 2025-12-03.1 and 2026-10-29.1. A search of NCBI's documentation did not confirm this for these elements. A direct test would be to re-run the five isolates with the older database.
+- Decision: features come from NCBI's stored results. The primary dataset is the 9,242 isolates with catalog 2025-12-03.1 (software 4.2.5); the other 541 (software 4.2.7, four newer catalogs) are used only in a sensitivity analysis. Primary-dataset clinical resistant isolates: tetracycline 145, ampicillin 129, ceftriaxone 45, ciprofloxacin 11.
+- Cost of restricting: ciprofloxacin-resistant isolates fall from 78 to 29 SNP-cluster groups, so ciprofloxacin is analysed descriptively only (no machine learning). Core antibiotics lose little (resistant groups: tetracycline 528 to 501, ampicillin 331 to 313, ceftriaxone 205 to 198).
+- Re-running all 9,783 genomes locally was rejected: the 300-isolate run took roughly an hour, so the full set would take about 30 hours and about 15 GB of downloads, for a small expected gain.
+

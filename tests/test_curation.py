@@ -82,3 +82,13 @@ def test_duplicate_assembly_accession_removed():
     out, removed, _ = cm.curate(raw)
     assert len(out) == 1
     assert removed["reason"].iloc[0] == "duplicate_assembly_accession"
+
+
+def test_primary_set_flag():
+    raw = pd.DataFrame([
+        row("PDT1", "SAMN1"),
+        {**row("PDT2", "SAMN2"), "PD Ref Gene Catalog version": "2026-08-07.1"},
+    ])
+    out, _, _ = cm.curate(raw)
+    flags = dict(zip(out["isolate"], out["in_primary_set"]))
+    assert flags == {"PDT1": True, "PDT2": False}

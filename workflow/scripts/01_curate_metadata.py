@@ -40,6 +40,10 @@ MAX_LENGTH = 5_700_000
 MAX_CONTIGS = 500
 MIN_N50 = 20_000
 
+# Primary analysis set: isolates whose NCBI AMR results were made with ONE reference-gene-catalog version
+# (software 4.2.5 + catalog 2025-12-03.1). All other isolates are kept in the table for sensitivity analyses.
+PRIMARY_CATALOG = "2025-12-03.1"
+
 
 # ----------------------------------------------------------------------------- helpers
 def parse_ast(value):
@@ -230,6 +234,7 @@ def curate(raw):
     out["assembler"] = merged["Method"]
     out["amrfinder_version"] = merged["AMRFinderPlus version"]
     out["amrfinder_catalog_version"] = merged["PD Ref Gene Catalog version"]
+    out["in_primary_set"] = (merged["PD Ref Gene Catalog version"] == PRIMARY_CATALOG)
     for d in ALL_DRUGS:
         calls = ast.apply(lambda x, d=d: x.get(d))
         out[f"ast_{d}"] = calls
@@ -262,6 +267,22 @@ def md_table(df):
     return "\n".join(lines)
 
 
+def label_table(df):
+    """Resistant / susceptible / excluded counts per antibiotic and host group."""
+    rows = []
+    for d in ALL_DRUGS:
+        for grp in ["all", "non_clinical", "clinical"]:
+            g = df if grp == "all" else df[df["host_group"] == grp]
+            call = g[f"ast_{d}"]
+            r = int((call == "R").sum()); s = int((call == "S").sum())
+            excl = len(g) - r - s
+            ncl = g.loc[g[f"y_{d}"] == 1, "cluster_group"].nunique()
+            rows.append([d + (" (exploratory)" if d in EXPLORATORY_DRUGS else ""), grp, r, s, excl,
+                         f"{100 * r / (r + s):.1f}%" if (r + s) else "NA", ncl])
+    return pd.DataFrame(rows, columns=["Antibiotic", "Group", "R (label 1)", "S (label 0)",
+                                       "Excluded (I/NS/ND/missing)", "R share", "Clusters containing R"])
+
+
 def write_report(path, log, removed, curated, mapping, problems, raw_files):
     L = []
     L.append("# Metadata curation report\n")
@@ -277,18 +298,13 @@ def write_report(path, log, removed, curated, mapping, problems, raw_files):
     L.append("## 2. File-versus-label check\n")
     L.append("Each raw file should contain only the class in its name according to its own AST column.\n")
     L.append(("Problems found:\n- " + "\n- ".join(problems) + "\n") if problems else "No problems found: every row agrees with its file name.\n")
-    L.append("## 3. Labels per antibiotic (after curation)\n")
-    rows = []
-    for d in ALL_DRUGS:
-        for grp in ["all", "non_clinical", "clinical"]:
-            g = curated if grp == "all" else curated[curated["host_group"] == grp]
-            call = g[f"ast_{d}"]
-            r = int((call == "R").sum()); s = int((call == "S").sum())
-            excl = len(g) - r - s
-            ncl = g.loc[g[f"y_{d}"] == 1, "cluster_group"].nunique()
-            rows.append([d + (" (exploratory)" if d in EXPLORATORY_DRUGS else ""), grp, r, s, excl,
-                         f"{100 * r / (r + s):.1f}%" if (r + s) else "NA", ncl])
-    L.append(md_table(pd.DataFrame(rows, columns=["Antibiotic", "Group", "R (label 1)", "S (label 0)", "Excluded (I/NS/ND/missing)", "R share", "Clusters containing R"])) + "\n")
+    L.append("## 3. Labels per antibiotic (after curation, all isolates)\n")
+    L.append(md_table(label_table(curated)) + "\n")
+    primary = curated[curated["in_primary_set"]]
+    L.append(f"## 3b. Labels per antibiotic, primary dataset only (catalog {PRIMARY_CATALOG}; {len(primary)} of {len(curated)} isolates)\n")
+    L.append("The primary dataset uses isolates whose NCBI AMR results come from one software and one reference-gene-catalog version. "
+             "The other isolates are kept for sensitivity analyses.\n")
+    L.append(md_table(label_table(primary)) + "\n")
     L.append("## 4. Independent groups (SNP clusters)\n")
     vc = curated["cluster_group"].value_counts()
     singles = int(curated["cluster_group"].str.startswith("SINGLETON_").sum())
