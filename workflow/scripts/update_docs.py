@@ -5,6 +5,7 @@ update_docs.py
 One command that refreshes every auto-generated document:
   1. docs/data_provenance.md     (from data/raw and config/download_manifest.tsv)
   2. reports/curation_report.md  (plus the curated tables in data/processed)
+  3. data/processed/features_*.tsv and reports/feature_report.md
 
 Run from the repository root:
     python workflow/scripts/update_docs.py
@@ -16,7 +17,7 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-STEPS = ["00_log_data_provenance.py", "01_curate_metadata.py"]
+STEPS = ["00_log_data_provenance.py", "01_curate_metadata.py", "04_build_features.py"]
 
 
 def main():
