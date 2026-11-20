@@ -91,3 +91,11 @@ Checked with code on `ceftriaxone_R_1.tsv`: 1,235 rows (matches the browser coun
 - Cost of restricting: ciprofloxacin-resistant isolates fall from 78 to 29 SNP-cluster groups, so ciprofloxacin is analysed descriptively only (no machine learning). Core antibiotics lose little (resistant groups: tetracycline 528 to 501, ampicillin 331 to 313, ceftriaxone 205 to 198).
 - Re-running all 9,783 genomes locally was rejected: the 300-isolate run took roughly an hour, so the full set would take about 30 hours and about 15 GB of downloads, for a small expected gain.
 
+## G. Feature table (17-19 Nov 2026)
+Built from NCBI's stored AMRFinderPlus core results with `04_build_features.py` (report: `reports/feature_report.md`).
+- Call types in the stored results: COMPLETE 23,412; POINT 896; PARTIAL_END_OF_CONTIG 655; PARTIAL 356; MISTRANSLATION 29; HMM 6. Features use COMPLETE and POINT only; weak calls are kept in a separate table.
+- 149 elements have at least one COMPLETE/POINT call; 9 more occur only with weak calls and are not features. In the primary dataset, 127 elements occur in at least 1 SNP-cluster group, 77 in at least 3, 38 in at least 10. Median 2 elements per isolate (maximum 21).
+- 2,936 isolates (30.0%) have no element. Among them almost all are susceptible: resistant share 1.2% for tetracycline (36 of 2,910 with a label), 0.5% for ampicillin, 0.3% for ceftriaxone and 0.6% for ciprofloxacin. So known elements explain nearly all resistance; the few resistant isolates without any element are unexplained (unknown mechanism, label noise or a database gap).
+- The point mutation gyrA_D87Y occurs in 722 primary-dataset isolates but only 19 independent groups, which again shows how few independent examples back ciprofloxacin resistance.
+- No feature is filtered at this stage; rare-feature filtering will be done inside cross-validation.
+
