@@ -1,0 +1,3 @@
+# Settings read by workflow/Snakefile. Paths are relative to the repository root.
+raw_dir: data/raw                        # the six NCBI Isolates Browser downloads (not committed to Git)
+manifest: config/download_manifest.tsv   # lists the raw files, the search queries and the expected row counts

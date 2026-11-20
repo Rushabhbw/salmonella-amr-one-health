@@ -1,0 +1,90 @@
+# Snakemake workflow: raw NCBI downloads -> curated metadata -> feature table.
+#
+# Run from the repository root, inside WSL / Linux, with the environment active:
+#     conda activate salmonella-amr-tools
+#     snakemake --cores 1            # build everything
+#     snakemake --cores 1 -n         # dry run: show what would be done
+#     snakemake --cores 1 concordance_report   # after the AMRFinderPlus runs (see README): compare our run with NCBI
+#
+# Steps that need the internet and many minutes (downloading genomes, running AMRFinderPlus) are NOT part of
+# the default target. They are run with workflow/scripts/run_amrfinder_subset.sh (see README).
+import pandas as pd
+
+configfile: "config/config.yaml"
+
+RAW_DIR = config["raw_dir"]
+MANIFEST = config["manifest"]
+RAW_FILES = [f"{RAW_DIR}/{name}" for name in pd.read_csv(MANIFEST, sep="\t")["file"]]
+
+
+rule all:
+    input:
+        "docs/data_provenance.md",
+        "reports/curation_report.md",
+        "data/processed/features_presence.tsv",
+        "reports/feature_report.md",
+        "data/processed/subset_300.tsv",
+
+
+rule provenance:
+    """Write the data log (row counts, columns, checksums). Fails if a count or column set is wrong."""
+    input:
+        manifest=MANIFEST,
+        raw=RAW_FILES,
+    output:
+        "docs/data_provenance.md",
+    shell:
+        "python workflow/scripts/00_log_data_provenance.py --raw-dir {RAW_DIR} --manifest {input.manifest} --out {output}"
+
+
+rule curate:
+    """Merge the raw tables, remove duplicates and unusable records, build labels and metadata."""
+    input:
+        raw=RAW_FILES,
+        provenance="docs/data_provenance.md",   # curation only runs after the raw data passed the checks
+    output:
+        metadata="data/processed/metadata_curated.tsv",
+        mapping="data/processed/source_mapping.tsv",
+        removed="data/interim/removed_isolates.tsv",
+        report="reports/curation_report.md",
+    shell:
+        "python workflow/scripts/01_curate_metadata.py --raw-dir {RAW_DIR} "
+        "--processed-dir data/processed --interim-dir data/interim --report {output.report}"
+
+
+rule subset:
+    """Choose the 300-isolate subset (seed 42) used for the local AMRFinderPlus check."""
+    input:
+        "data/processed/metadata_curated.tsv",
+    output:
+        table="data/processed/subset_300.tsv",
+        accessions="data/processed/subset_300_accessions.txt",
+        pilot="data/processed/subset_pilot_accessions.txt",
+    shell:
+        "python workflow/scripts/02_select_subset.py --metadata {input} --out-dir data/processed"
+
+
+rule features:
+    """Build the 0/1 resistance-element table from NCBI's stored AMRFinderPlus results."""
+    input:
+        "data/processed/metadata_curated.tsv",
+    output:
+        presence="data/processed/features_presence.tsv",
+        uncertain="data/processed/features_uncertain.tsv",
+        dictionary="data/processed/feature_dictionary.tsv",
+        report="reports/feature_report.md",
+    shell:
+        "python workflow/scripts/04_build_features.py --metadata {input} --out-dir data/processed --report {output.report}"
+
+
+rule concordance_report:
+    """On demand: compare our local AMRFinderPlus results with NCBI's stored results."""
+    input:
+        metadata="data/processed/metadata_curated.tsv",
+        versions="data/interim/amrfinder_local/versions.txt",   # exists only after run_amrfinder_subset.sh has run
+    output:
+        report="reports/amrfinder_concordance.md",
+        table="data/processed/amrfinder_concordance_per_isolate.tsv",
+    shell:
+        "python workflow/scripts/03_compare_amrfinder.py --amr-dir data/interim/amrfinder_local "
+        "--metadata {input.metadata} --report {output.report} --table {output.table}"
