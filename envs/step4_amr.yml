@@ -1,18 +1,18 @@
 # Lean environment (download assemblies, run AMRFinderPlus, Snakemake workflow).
 # Create:  mamba env create -f envs/step4_amr.yml
-# Versions are deliberately not pinned yet; the tested versions are recorded in
-# data/interim/amrfinder_local/versions.txt after the first run, and pinned later.
+# Python and AMRFinderPlus are pinned. Other tools are recorded in envs/salmonella-amr-tools.lock.yml after a tested install.
 name: salmonella-amr-tools
 channels:
   - conda-forge
   - bioconda
   - nodefaults
 dependencies:
-  - python
+  - python=3.12      # pinned: an unpinned python picked 3.15, which Snakemake's dependencies do not support yet
   - pandas
-  - ncbi-amrfinderplus
+  - ncbi-amrfinderplus=4.2.7   # the version used for the local concordance run
   - ncbi-datasets-cli
   - seqkit
   - snakemake
   - graphviz
   - unzip
+  - pytest

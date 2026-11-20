@@ -49,7 +49,7 @@ Downloading genomes and running AMRFinderPlus are separate, slower steps (`setup
    ```
 5. Run the tests: `python -m pytest -q tests`
 
-Environment versions are not pinned yet; they will be pinned and recorded before the first release.
+Python 3.12 and AMRFinderPlus 4.2.7 are pinned in `envs/step4_amr.yml`; the exact version of every package from a tested install is recorded in `envs/salmonella-amr-tools.lock.yml`. The AMRFinderPlus database is downloaded at setup time and its version is written to `data/interim/amrfinder_local/versions.txt` and to the concordance report.
 
 ## Repository layout
 | Folder | Purpose |
