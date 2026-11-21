@@ -1,6 +1,6 @@
 # Salmonella AMR: resistome profiling and machine-learning prediction (One Health)
 
-**Status: work in progress. Data curation, validation and the feature table are done. Baseline, statistics, machine learning, figures and the report are next.**
+**Status: work in progress. Data curation, validation, the feature table and the evaluation design are done. Baseline results, statistics, machine learning, figures and the report are next.**
 
 ## Goal
 Compare a rule-based baseline (AMRFinderPlus genes and mutations) with machine-learning models for predicting antimicrobial resistance in *Salmonella enterica*, using public NCBI Pathogen Detection data, and test how well models trained on food, animal and environmental isolates transfer to human clinical isolates. Full plan: [`docs/00_project_charter.md`](docs/00_project_charter.md).
@@ -24,6 +24,9 @@ Our own AMRFinderPlus run (software 4.2.7, database 2026-10-29.1) on 300 isolate
 | Pick a 300-isolate check subset | `02_select_subset.py` | `data/processed/subset_300.tsv` |
 | Compare local AMRFinderPlus run with NCBI | `03_compare_amrfinder.py` | `reports/amrfinder_concordance.md` |
 | Build the resistance-element table | `04_build_features.py` | `data/processed/features_presence.tsv`, `reports/feature_report.md` |
+| Link elements to antibiotic classes (reference data, run once) | `05_map_elements_to_classes.py` | `config/element_classes.tsv`, `reports/element_class_report.md` |
+| Rule-based baseline | `06_baseline_rules.py` | `reports/baseline_report.md` |
+| Fixed evaluation splits | `07_make_splits.py` | `data/processed/splits.tsv`, `reports/splits_report.md` |
 
 Downloading genomes and running AMRFinderPlus are separate, slower steps (`setup_wsl.sh`, `run_amrfinder_subset.sh`).
 
@@ -41,13 +44,18 @@ Downloading genomes and running AMRFinderPlus are separate, slower steps (`setup
    python workflow/scripts/update_docs.py
    python workflow/scripts/02_select_subset.py
    ```
-4. Optional local AMRFinderPlus check (Linux or WSL, needs internet, about an hour):
+4. Baseline reference data (once, Linux or WSL, then on any system):
+   ```
+   bash workflow/scripts/fetch_catalog.sh
+   python workflow/scripts/05_map_elements_to_classes.py
+   ```
+5. Optional local AMRFinderPlus check (Linux or WSL, needs internet, about an hour):
    ```
    bash workflow/scripts/setup_wsl.sh
    bash workflow/scripts/run_amrfinder_subset.sh full
    snakemake --cores 1 concordance_report
    ```
-5. Run the tests: `python -m pytest -q tests`
+6. Run the tests: `python -m pytest -q tests`
 
 Python 3.12 and AMRFinderPlus 4.2.7 are pinned in `envs/step4_amr.yml`; the exact version of every package from a tested install is recorded in `envs/salmonella-amr-tools.lock.yml`. The AMRFinderPlus database is downloaded at setup time and its version is written to `data/interim/amrfinder_local/versions.txt` and to the concordance report.
 
@@ -66,7 +74,7 @@ Python 3.12 and AMRFinderPlus 4.2.7 are pinned in `envs/step4_amr.yml`; the exac
 ## Known limitations
 - Laboratory results are submitter-supplied; the test method is not in the table.
 - Isolates are heavily clustered, so isolate counts overstate independent evidence. All validation will be grouped by SNP cluster.
-- The human clinical group is small (ceftriaxone: 45 resistant isolates in the primary dataset), so uncertainty will be wide.
+- The human clinical group is small (ceftriaxone: 45 resistant isolates in the primary dataset) and concentrated: 222 of 270 clinical isolates come from one BioProject, so uncertainty will be wide and the human transfer test mostly reflects one collection.
 - Data are mostly American, so conclusions apply to US surveillance data. The workflow is designed to be re-run on other data.
 
 ## Author

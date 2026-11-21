@@ -8,6 +8,7 @@
 #
 # Steps that need the internet and many minutes (downloading genomes, running AMRFinderPlus) are NOT part of
 # the default target. They are run with workflow/scripts/run_amrfinder_subset.sh (see README).
+import os
 import pandas as pd
 
 configfile: "config/config.yaml"
@@ -17,13 +18,25 @@ MANIFEST = config["manifest"]
 RAW_FILES = [f"{RAW_DIR}/{name}" for name in pd.read_csv(MANIFEST, sep="\t")["file"]]
 
 
+# config/element_classes.tsv is reference data made once by workflow/scripts/05_map_elements_to_classes.py from the
+# AMRFinderPlus Reference Gene Catalog (see README). The baseline is only part of the default target when it exists.
+ELEMENT_CLASSES = "config/element_classes.tsv"
+TARGETS = [
+    "docs/data_provenance.md",
+    "reports/curation_report.md",
+    "data/processed/features_presence.tsv",
+    "reports/feature_report.md",
+    "data/processed/subset_300.tsv",
+    "data/processed/splits.tsv",
+    "reports/splits_report.md",
+]
+if os.path.exists(ELEMENT_CLASSES):
+    TARGETS += ["data/processed/baseline_predictions.tsv", "reports/baseline_report.md"]
+
+
 rule all:
     input:
-        "docs/data_provenance.md",
-        "reports/curation_report.md",
-        "data/processed/features_presence.tsv",
-        "reports/feature_report.md",
-        "data/processed/subset_300.tsv",
+        TARGETS,
 
 
 rule provenance:
@@ -75,6 +88,31 @@ rule features:
         report="reports/feature_report.md",
     shell:
         "python workflow/scripts/04_build_features.py --metadata {input} --out-dir data/processed --report {output.report}"
+
+
+rule splits:
+    """Define the evaluation splits (grouped 5-fold, clean human transfer test, time split) once for every model."""
+    input:
+        "data/processed/metadata_curated.tsv",
+    output:
+        table="data/processed/splits.tsv",
+        report="reports/splits_report.md",
+    shell:
+        "python workflow/scripts/07_make_splits.py --metadata {input} --out {output.table} --report {output.report}"
+
+
+rule baseline:
+    """Rule-based baseline: resistant if the isolate carries an element linked to the antibiotic."""
+    input:
+        metadata="data/processed/metadata_curated.tsv",
+        features="data/processed/features_presence.tsv",
+        mapping=ELEMENT_CLASSES,
+    output:
+        predictions="data/processed/baseline_predictions.tsv",
+        report="reports/baseline_report.md",
+    shell:
+        "python workflow/scripts/06_baseline_rules.py --metadata {input.metadata} --features {input.features} "
+        "--mapping {input.mapping} --out {output.predictions} --report {output.report}"
 
 
 rule concordance_report:

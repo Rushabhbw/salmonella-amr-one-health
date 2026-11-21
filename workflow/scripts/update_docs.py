@@ -6,6 +6,8 @@ One command that refreshes every auto-generated document:
   1. docs/data_provenance.md     (from data/raw and config/download_manifest.tsv)
   2. reports/curation_report.md  (plus the curated tables in data/processed)
   3. data/processed/features_*.tsv and reports/feature_report.md
+  4. data/processed/splits.tsv and reports/splits_report.md
+  5. the baseline report, if config/element_classes.tsv exists
 
 Run from the repository root:
     python workflow/scripts/update_docs.py
@@ -17,7 +19,9 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-STEPS = ["00_log_data_provenance.py", "01_curate_metadata.py", "04_build_features.py"]
+STEPS = ["00_log_data_provenance.py", "01_curate_metadata.py", "04_build_features.py", "07_make_splits.py"]
+if Path("config/element_classes.tsv").exists():      # reference data made once by 05_map_elements_to_classes.py
+    STEPS.append("06_baseline_rules.py")
 
 
 def main():

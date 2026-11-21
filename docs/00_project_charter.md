@@ -2,7 +2,7 @@
 
 **Title:** Resistome profiling and machine-learning prediction of antimicrobial resistance in livestock/food-associated and human-associated *Salmonella enterica*: a reproducible One Health workflow
 
-**Author:** Rushabh Wakade  |  **Version:** 0.4 (feature source decided after the 300-isolate AMRFinderPlus check)  |  **Date:** 16 Nov 2026
+**Author:** Rushabh Wakade  |  **Version:** 0.5 (evaluation design fixed: splits and baseline)  |  **Date:** 16 Nov 2026
 
 > Status: scope locked on 16 Nov 2026 and updated on 17 Nov 2026 with the curated dataset (9,783 isolates) and the 300-isolate local AMRFinderPlus check. Counts are in `reports/curation_report.md` and `docs/feasibility_notes.md`. No model results are claimed in this document.
 
@@ -12,7 +12,7 @@ Antimicrobial resistance (AMR) spreads between animals, food and people, so it i
 ## 2. Research questions
 - **RQ1.** How accurately do AMRFinderPlus-detected genes and mutations predict laboratory resistance phenotypes for the chosen antibiotics (rule-based baseline)?
 - **RQ2.** Do machine-learning models using gene/mutation presence-absence features outperform the baseline when evaluated with a relatedness-aware split (not only a random split)?
-- **RQ3.** How well does a model trained on non-clinical isolates (food, animal, environment) transfer to human clinical isolates, which are kept as a separate, cluster-independent test set?
+- **RQ3.** How well does a model trained on non-clinical isolates (food, animal, environment) transfer to human clinical isolates, which are kept as a separate, cluster-independent test set? (In the primary dataset 222 of the 270 clinical isolates come from one BioProject and 204 were collected in 2014, so this is largely transfer to one human collection. This is stated as a limitation.)
 - **RQ4 (secondary, descriptive).** Do resistome profiles differ between clinical and non-clinical isolates, and how much of any difference is explained by serotype, country, year and study?
 
 ## 3. Hypotheses (to be tested, not assumed)
@@ -54,6 +54,9 @@ Antimicrobial resistance (AMR) spreads between animals, food and people, so it i
 - Curated dataset: 9,783 isolates (288 human clinical, 9,495 non-clinical; about 85% of the non-clinical group is poultry; about 97% are from the USA).
 - Human clinical resistant isolates available for RQ3 (primary dataset): tetracycline 145, ampicillin 129, ceftriaxone 45 (from 25 groups). Confidence intervals for ceftriaxone will be wide and are reported as such.
 - Labels come from the `AST phenotypes` column: S = 0, R = 1; I, NS, ND and missing values are excluded for that drug.
+- Evaluation splits (fixed once in `07_make_splits.py`, seed 42, primary dataset only): (1) grouped 5-fold cross-validation by SNP-cluster group (no group in both train and test; new-lineage performance); (2) clean human transfer test: train on the 5,158 non-clinical isolates that share no group with a clinical isolate, test on the 270 clinical isolates; the naive version is reported only to show its leak (162 of 270 clinical isolates, 60%, have a relative in the training data); (3) time split: train up to 2016, test later (87.6% of test isolates share a group with training, so this is a forward-prediction check and not a new-lineage test).
+- Rule-based baseline: an isolate is predicted resistant if it carries an element that NCBI's Reference Gene Catalog links to the antibiotic (tetracycline: TETRACYCLINE class; ampicillin: BETA-LACTAM class; ceftriaxone: BETA-LACTAM class with CEPHALOSPORIN subclass; ciprofloxacin: QUINOLONE). An element counts only if every catalog entry it matches satisfies the rule (a family-level symbol such as blaTEM is not cephalosporin evidence), and MULTIDRUG-class elements are not drug-specific evidence; both choices were refined after a first run (see `docs/feasibility_notes.md`, section I) and their alternatives are reported as sensitivity rows. Reported with sensitivity, specificity, MCC, very major and major error rates and cluster-bootstrap 95% intervals. Machine-learning models must beat the baseline on the same splits to be reported as an improvement.
+- Ciprofloxacin cannot be evaluated with the time split (17 resistant isolates in training, 584 in the test period).
 - Features: presence/absence of AMRFinderPlus core elements from NCBI's stored results. Primary dataset = the 9,242 of 9,783 isolates (270 of 288 clinical) whose stored results come from one software and catalog version (4.2.5, 2025-12-03.1); the remaining 541 isolates are used only in a sensitivity analysis. A local re-run (software 4.2.7, database 2026-10-29.1) on 300 isolates gave identical element sets for 295 (98.3%; 95% CI for the difference rate 0.7-3.8%).
 - Dropped: trimethoprim-sulfamethoxazole (too few independent resistant clusters; one cluster holds most resistant isolates).
 - Host categories: "clinical" vs "environmental/other" as defined by NCBI isolation type. The clinical group is small (about 2-5% of AST isolates), so it is used mainly as an independent test set.

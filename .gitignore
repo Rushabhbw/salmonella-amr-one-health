@@ -1,6 +1,7 @@
 # data (large files are not committed)
 data/raw/*
 data/interim/*
+data/external/*
 data/processed/*
 !data/**/.gitkeep
 # python
