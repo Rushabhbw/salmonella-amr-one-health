@@ -94,3 +94,15 @@ def test_weak_only_elements_are_added(tmp_path):
     d = pd.DataFrame({"element": ["tet(A)"], "kind": ["gene"]})
     m = mc.map_elements(d, cat, extra_elements=["tet(A)", "blaTEM-1"]).set_index("element")
     assert list(m.index) == ["tet(A)", "blaTEM-1"] and m.loc["blaTEM-1", "kind"] == "weak_only" and m.loc["blaTEM-1", "ampicillin"] == 1
+
+
+def test_report_has_clean_numbers_for_weak_only_elements(tmp_path):
+    cat = mc.read_catalog(make_catalog(tmp_path))
+    d = pd.DataFrame({"element": ["blaTEM-1", "tet(A)"], "kind": ["gene", "gene"], "n_isolates_primary": [1131, 4], "n_groups_primary": [141, 2]})
+    m = mc.map_elements(d, cat, extra_elements=["blaCMY-2", "notInCatalog"])
+    rep = tmp_path / "r.md"
+    mc.write_report(rep, m, "cat.txt")
+    text = rep.read_text(encoding="utf-8")
+    assert "nan" not in text and "1131.0" not in text and "1131" in text
+    assert "weak calls only" in text
+

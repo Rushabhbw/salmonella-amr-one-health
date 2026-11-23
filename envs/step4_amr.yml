@@ -16,3 +16,6 @@ dependencies:
   - graphviz
   - unzip
   - pytest
+  - scipy
+  - scikit-learn
+  - matplotlib

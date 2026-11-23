@@ -1,6 +1,6 @@
 # Feature table report
 
-Generated: 2026-11-20 10:54  
+Generated: 2026-11-23 09:53  
 Script: `workflow/scripts/04_build_features.py`
 
 ## Rules

@@ -115,6 +115,19 @@ def map_elements(dictionary, catalog, extra_elements=()):
     return pd.DataFrame(out)
 
 
+def whole_numbers(series, blank=""):
+    """Format counts as whole numbers without depending on the pandas version's handling of missing values."""
+    return [blank if pd.isna(v) else str(int(v)) for v in pd.to_numeric(series, errors="coerce")]
+
+
+def clean_counts(df, col="n_isolates_primary", blank="weak calls only"):
+    """Show counts as whole numbers; elements that only ever had weak calls have no count."""
+    df = df.copy()
+    if col in df.columns:
+        df[col] = whole_numbers(df[col], blank)
+    return df
+
+
 def md_table(df):
     cols = list(df.columns)
     lines = ["| " + " | ".join(cols) + " |", "|" + "|".join(["---"] * len(cols)) + "|"]
@@ -142,7 +155,7 @@ def write_report(path, mapping, catalog_path):
              f"- Not found in the catalog: {len(unm)}\n- With more than one class/subclass pair (ambiguous): {int(mapping['ambiguous'].sum())}\n")
     if len(unm):
         cols = [c for c in ["element", "kind", "n_isolates_primary"] if c in unm.columns]
-        L.append("Not found (check these by hand):\n\n" + md_table(unm[cols].head(30)) + "\n")
+        L.append("Not found (check these by hand):\n\n" + md_table(clean_counts(unm[cols]).head(30)) + "\n")
     L.append("## Class and subclass of the matched elements\n")
     t = (mapping[mapping["matched_on"] != "none"].groupby(["class", "subclass"]).size().reset_index(name="elements")
          .sort_values("elements", ascending=False).head(25))
@@ -160,7 +173,9 @@ def write_report(path, mapping, catalog_path):
         if "n_isolates_primary" in s.columns:
             s["n_isolates_primary"] = pd.to_numeric(s["n_isolates_primary"], errors="coerce")
             s = s.sort_values("n_isolates_primary", ascending=False)
-        L.append(md_table(s.head(40)) + "\n")
+        if "n_groups_primary" in s.columns:
+            s["n_groups_primary"] = whole_numbers(s["n_groups_primary"], "")
+        L.append(md_table(clean_counts(s).head(40)) + "\n")
         if len(md_only):
             L.append("Excluded as MULTIDRUG-class or not drug-specific (sensitivity analysis only): " + ", ".join(md_only["element"].astype(str)) + "\n")
     Path(path).parent.mkdir(parents=True, exist_ok=True)
@@ -190,7 +205,8 @@ def main(argv=None):
     mapping.to_csv(a.out, sep="\t", index=False, lineterminator="\n")
     write_report(a.report, mapping, a.catalog)
     print(f"Elements: {len(mapping)} | matched: {int((mapping['matched_on'] != 'none').sum())} | not found: {int((mapping['matched_on'] == 'none').sum())}")
-    print("Elements per antibiotic:", {d: int(mapping[d].sum()) for d in DRUG_RULES}, "| weak-only elements added:", len(extra))
+    n_added = int((mapping["kind"] == "weak_only").sum()) if "kind" in mapping.columns else 0
+    print("Elements per antibiotic:", {d: int(mapping[d].sum()) for d in DRUG_RULES}, "| elements added because they only had weak calls:", n_added)
     print("Report:", a.report)
     return 0
 

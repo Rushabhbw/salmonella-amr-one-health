@@ -1,6 +1,6 @@
 # Evaluation splits report
 
-Generated: 2026-11-21 15:53  
+Generated: 2026-11-23 09:53  
 Script: `workflow/scripts/07_make_splits.py`  
 Seed 42; folds 5; time cutoff 2016. Only the primary dataset is split.
 

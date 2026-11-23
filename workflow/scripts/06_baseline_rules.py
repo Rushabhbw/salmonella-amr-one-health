@@ -141,13 +141,13 @@ def bioproject_errors(meta_p, err_mask, lab_mask, top=5):
 def build(meta, feats, mapping, uncertain=None):
     """Returns (predictions DataFrame, list of per-drug section dicts)."""
     meta = meta.reset_index(drop=True)
-    feats = feats.set_index("isolate").loc[meta["isolate"]].reset_index().copy()   # copy() de-fragments the wide table
-    element_cols = [c for c in feats.columns if c not in ID_COLS]
-    F = feats[element_cols].astype(int)
+    ordered = feats.set_index("isolate").loc[meta["isolate"]]
+    element_cols = [c for c in ordered.columns if c not in ID_COLS]
+    F = ordered[element_cols].astype(int).reset_index(drop=True)
     U = None
     if uncertain is not None:
-        u = uncertain.set_index("isolate").reindex(meta["isolate"]).reset_index().copy()
-        U = u[[c for c in u.columns if c not in ID_COLS]].fillna(0).astype(int)
+        u = uncertain.set_index("isolate").reindex(meta["isolate"])
+        U = u[[c for c in u.columns if c not in ID_COLS]].fillna(0).astype(int).reset_index(drop=True)
     preds = meta[["isolate", "in_primary_set", "host_group", "cluster_group"]].copy()
     primary = meta["in_primary_set"].astype(str).str.lower().eq("true")
     sections = []
