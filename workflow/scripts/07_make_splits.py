@@ -7,6 +7,8 @@ models are judged on exactly the same isolates. Only the primary dataset is spli
 
   fold5              5-fold cross-validation where whole SNP-cluster groups stay together (no near-identical isolate
                      in both train and test). Measures performance on NEW lineages.
+  random5            5-fold cross-validation that IGNORES clusters (random assignment). LEAKY on purpose: it shows how much
+                     an unfair evaluation inflates results, and is never used to judge a model.
   transfer_naive     train = all non-clinical isolates, test = clinical isolates. LEAKY: many clinical isolates have
                      close relatives among the non-clinical isolates. Kept only to show the size of the leak.
   transfer_disjoint  as above, but non-clinical isolates from any group that also contains a clinical isolate are
@@ -55,6 +57,12 @@ def make_splits(meta, k=K_FOLDS, seed=SEED, cutoff=CUTOFF_YEAR):
     folds = assign_group_folds(p["cluster_group"].value_counts(), k, seed)
     out["fold5"] = pd.array(np.where(primary, meta["cluster_group"].map(folds), np.nan), dtype="Int64")
 
+    rng = np.random.default_rng(seed)
+    perm = rng.permutation(np.where(primary)[0])
+    rnd = np.full(len(meta), np.nan)
+    rnd[perm] = np.arange(len(perm)) % k
+    out["random5"] = pd.array(rnd, dtype="Int64")
+
     clin = meta["host_group"] == "clinical"
     out["transfer_naive"] = np.where(primary, np.where(clin, "test", "train"), None)
 
@@ -74,6 +82,17 @@ def leakage(out, split_col, labels):
     tr = set(out.loc[out[split_col].isin(labels[0]), "cluster_group"])
     te = out[out[split_col].isin(labels[1])]
     return len(te), int(te["cluster_group"].isin(tr).sum())
+
+
+def fold_leakage(out, col, k=K_FOLDS):
+    """Over all folds: (test isolates, test isolates whose cluster group also occurs in the training folds)."""
+    n_t = k_t = 0
+    for fold in range(k):
+        te = out[out[col] == fold]
+        tr = set(out.loc[out[col].notna() & (out[col] != fold), "cluster_group"])
+        n_t += len(te)
+        k_t += int(te["cluster_group"].isin(tr).sum())
+    return n_t, k_t
 
 
 def md_table(df):
@@ -98,22 +117,19 @@ def write_report(path, meta, out, shared):
         vc = out[col].value_counts()
         rows.append([col, int(vc.get("train", 0)), int(vc.get("test", 0)), int(vc.get("excluded", 0))])
     f = out["fold5"].dropna().astype(int).value_counts().sort_index()
-    rows.append(["fold5 (each fold is the test set once)", "see folds table", f"{int(f.min())}-{int(f.max())} per fold", 0])
+    rows.append(["fold5 and random5 (each fold is the test set once)", "see folds table", f"{int(f.min())}-{int(f.max())} per fold", 0])
     L.append("## Sizes\n\n" + md_table(pd.DataFrame(rows, columns=["Split", "Train", "Test", "Excluded"])) + "\n")
     # leakage
     rows = []
     for col, labs in (("transfer_naive", (["train"], ["test"])), ("transfer_disjoint", (["train"], ["test"])), ("time", (["train"], ["test"]))):
         n, k = leakage(out, col, labs)
         rows.append([col, n, k, f"{100 * k / n:.1f}%" if n else "NA"])
-    n_t = k_t = 0
-    for fold in range(K_FOLDS):
-        te = out[out["fold5"] == fold]
-        tr = set(out.loc[out["fold5"].notna() & (out["fold5"] != fold), "cluster_group"])
-        n_t += len(te); k_t += int(te["cluster_group"].isin(tr).sum())
-    rows.append(["fold5 (all folds)", n_t, k_t, f"{100 * k_t / n_t:.1f}%" if n_t else "NA"])
+    for col in ("fold5", "random5"):
+        n_t, k_t = fold_leakage(out, col)
+        rows.append([f"{col} (all folds)", n_t, k_t, f"{100 * k_t / n_t:.1f}%" if n_t else "NA"])
     L.append("## Leakage check: test isolates whose SNP-cluster group also appears in training\n\n"
              + md_table(pd.DataFrame(rows, columns=["Split", "Test isolates", "With a relative in train", "Share"])) + "\n")
-    L.append("`fold5` and `transfer_disjoint` must show 0. `transfer_naive` shows how leaky the simple human-vs-other split would be. "
+    L.append("`fold5` and `transfer_disjoint` must show 0. `transfer_naive` and `random5` show how leaky the simple splits would be. "
              "`time` is expected to share lineages across years; that is a realistic forward-prediction setting.\n")
     # labels
     prim = m[m["in_primary_set"].astype(str).str.lower() == "true"]

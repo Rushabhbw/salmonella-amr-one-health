@@ -127,3 +127,12 @@ Primary dataset, rules version 2 (family-level symbols need every catalog entry 
 - Ciprofloxacin: isolates with a target-site mutation (gyrA, gyrB, parC, parE) are resistant in 579 of 584 labelled cases (99.1%); isolates with neither a mutation nor a qnr gene are resistant in 4 of 8,352; isolates with only a qnr gene are resistant in 20 of 39 labelled cases, with another 29 called intermediate and excluded. qnr genes caused 19 of the 24 false alarms. BioProject PRJNA1018843 (10 Nigerian isolates, 2018) has 10 of 10 errors: all are labelled susceptible and carry only qnrB19 or qnrS1.
 - Consequence for machine learning: the baseline leaves little room (sensitivity 0.96-0.99, specificity at least 0.993 for the core antibiotics). Any gain would have to come from the missed resistance (partial calls, co-occurring genes). The planned comparison therefore uses the same fixed splits, a random split as a contrast, and paired cluster-bootstrap intervals for the difference from the baseline.
 
+## K. Machine-learning design decisions (23 Nov 2026, written before any result was discussed)
+- Question: can models learn something the rules miss, and does it transfer? Candidate sources of gain named in advance: partial calls (assembly fragmentation) and co-occurring genes (for example the ampicillin-resistant isolates without a detected beta-lactamase).
+- Antibiotics: tetracycline, ampicillin, ceftriaxone. Ciprofloxacin stays descriptive (too few independent resistant groups).
+- Fixed in advance: model types and hyperparameters, threshold 0.5, no class re-weighting, no tuning on test data. A hyperparameter search would need nested grouped cross-validation and is left as future work unless a model clearly underfits.
+- Added a leaky `random5` split (92.4% of its test isolates have a close relative in training) so that the size of the inflation from unfair evaluation is measured and reported, never used to judge a model.
+- Evidence standard: a model counts as better only if the paired cluster-bootstrap interval for the MCC difference (model minus rules) excludes zero.
+- Shortcut test: a random forest without the catalog-linked elements shows what linkage alone can predict; the gap between random5 and the grouped splits shows whether that shortcut survives new lineages.
+- Runtime on a single CPU core: about 5 minutes for 5 model variants x 3 antibiotics x 4 splits.
+

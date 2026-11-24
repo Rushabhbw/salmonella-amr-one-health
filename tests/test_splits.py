@@ -66,3 +66,16 @@ def test_deterministic_and_end_to_end(tmp_path):
     assert code == 0
     text = (tmp_path / "r.md").read_text(encoding="utf-8")
     assert "Leakage check" in text and "transfer_disjoint" in text
+
+
+def test_random5_is_balanced_but_leaky():
+    m = fake_meta()
+    out, _ = sp.make_splits(m)
+    p = out[out["random5"].notna()]
+    sizes = p["random5"].value_counts()
+    assert sizes.max() - sizes.min() <= 1                                    # balanced to within one isolate
+    assert out.loc[~out["in_primary_set"], "random5"].isna().all()
+    n_g, leak_g = sp.fold_leakage(out, "fold5")
+    n_r, leak_r = sp.fold_leakage(out, "random5")
+    assert leak_g == 0 and leak_r > 0.5 * n_r                                 # grouped folds are clean; random folds are not
+

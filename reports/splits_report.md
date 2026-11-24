@@ -1,6 +1,6 @@
 # Evaluation splits report
 
-Generated: 2026-11-23 09:53  
+Generated: 2026-11-24 10:13  
 Script: `workflow/scripts/07_make_splits.py`  
 Seed 42; folds 5; time cutoff 2016. Only the primary dataset is split.
 
@@ -11,7 +11,7 @@ Seed 42; folds 5; time cutoff 2016. Only the primary dataset is split.
 | transfer_naive | 8972 | 270 | 0 |
 | transfer_disjoint | 5158 | 270 | 3814 |
 | time | 5489 | 3715 | 0 |
-| fold5 (each fold is the test set once) | see folds table | 1848-1849 per fold | 0 |
+| fold5 and random5 (each fold is the test set once) | see folds table | 1848-1849 per fold | 0 |
 
 ## Leakage check: test isolates whose SNP-cluster group also appears in training
 
@@ -21,8 +21,9 @@ Seed 42; folds 5; time cutoff 2016. Only the primary dataset is split.
 | transfer_disjoint | 270 | 0 | 0.0% |
 | time | 3715 | 3253 | 87.6% |
 | fold5 (all folds) | 9242 | 0 | 0.0% |
+| random5 (all folds) | 9242 | 8539 | 92.4% |
 
-`fold5` and `transfer_disjoint` must show 0. `transfer_naive` shows how leaky the simple human-vs-other split would be. `time` is expected to share lineages across years; that is a realistic forward-prediction setting.
+`fold5` and `transfer_disjoint` must show 0. `transfer_naive` and `random5` show how leaky the simple splits would be. `time` is expected to share lineages across years; that is a realistic forward-prediction setting.
 
 ## Resistant / susceptible isolates in train and test
 

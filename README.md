@@ -27,6 +27,7 @@ Our own AMRFinderPlus run (software 4.2.7, database 2026-10-29.1) on 300 isolate
 | Link elements to antibiotic classes (reference data, run once) | `05_map_elements_to_classes.py` | `config/element_classes.tsv`, `reports/element_class_report.md` |
 | Rule-based baseline | `06_baseline_rules.py` | `reports/baseline_report.md` |
 | Fixed evaluation splits | `07_make_splits.py` | `data/processed/splits.tsv`, `reports/splits_report.md` |
+| Machine-learning models vs the baseline | `08_train_evaluate_models.py` | `reports/ml_report.md`, `data/processed/ml_metrics.tsv` |
 
 Downloading genomes and running AMRFinderPlus are separate, slower steps (`setup_wsl.sh`, `run_amrfinder_subset.sh`).
 
@@ -37,8 +38,9 @@ Downloading genomes and running AMRFinderPlus are separate, slower steps (`setup
    ```
    mamba env create -f envs/step4_amr.yml
    conda activate salmonella-amr-tools
-   snakemake --cores 1
+   snakemake --cores 4
    ```
+   (the machine-learning step takes several minutes)
    **Windows without WSL** (needs Python with pandas, numpy and pytest):
    ```
    python workflow/scripts/update_docs.py

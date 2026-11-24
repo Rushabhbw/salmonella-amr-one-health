@@ -31,7 +31,8 @@ TARGETS = [
     "reports/splits_report.md",
 ]
 if os.path.exists(ELEMENT_CLASSES):
-    TARGETS += ["data/processed/baseline_predictions.tsv", "reports/baseline_report.md"]
+    TARGETS += ["data/processed/baseline_predictions.tsv", "reports/baseline_report.md",
+                "data/processed/ml_metrics.tsv", "reports/ml_report.md"]
 
 
 rule all:
@@ -113,6 +114,27 @@ rule baseline:
     shell:
         "python workflow/scripts/06_baseline_rules.py --metadata {input.metadata} --features {input.features} "
         "--mapping {input.mapping} --out {output.predictions} --report {output.report}"
+
+
+rule models:
+    """Machine-learning models versus the baseline on the fixed splits (takes several minutes)."""
+    input:
+        metadata="data/processed/metadata_curated.tsv",
+        features="data/processed/features_presence.tsv",
+        uncertain="data/processed/features_uncertain.tsv",
+        splits="data/processed/splits.tsv",
+        baseline="data/processed/baseline_predictions.tsv",
+        mapping=ELEMENT_CLASSES,
+    output:
+        metrics="data/processed/ml_metrics.tsv",
+        importance="data/processed/ml_feature_importance.tsv",
+        predictions="data/processed/ml_predictions.tsv.gz",
+        report="reports/ml_report.md",
+    threads: 4
+    shell:
+        "N_JOBS={threads} python workflow/scripts/08_train_evaluate_models.py --metadata {input.metadata} --features {input.features} "
+        "--uncertain {input.uncertain} --splits {input.splits} --baseline {input.baseline} --mapping {input.mapping} "
+        "--out-dir data/processed --report {output.report}"
 
 
 rule concordance_report:
