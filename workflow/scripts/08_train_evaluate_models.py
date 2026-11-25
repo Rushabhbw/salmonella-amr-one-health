@@ -15,6 +15,8 @@ Model variants
   hgb_partial    histogram gradient boosting                       elements + partial-call indicators
   rf_no_catalog  random forest WITHOUT the elements NCBI links to the antibiotic: a shortcut test. It can only use
                  co-occurring genes, so it shows how much a model can learn from linkage alone.
+  lr_rules, hgb_rules  EXPLORATORY, added after the first results were seen: the same models given all elements AND one
+                 extra yes/no feature, "the rules say resistant". They ask whether a model can add anything on top of the rules.
 Hyperparameters are fixed in advance (no tuning on any test data). Threshold 0.5, no class re-weighting.
 
 Splits (from data/processed/splits.tsv)
@@ -70,7 +72,10 @@ VARIANTS = OrderedDict([
     ("hgb", ("hgb", "presence")),
     ("hgb_partial", ("hgb", "presence+partial")),
     ("rf_no_catalog", ("rf", "no_catalog")),
+    ("lr_rules", ("lr", "presence+rules")),
+    ("hgb_rules", ("hgb", "presence+rules")),
 ])
+EXPLORATORY = {"lr_rules", "hgb_rules"}          # not part of the design fixed before the first results
 SEED = 42
 N_BOOT = 1000
 N_JOBS = int(os.environ.get("N_JOBS", "-1"))
@@ -88,12 +93,15 @@ def make_model(algo, fast=False, seed=SEED):
     raise ValueError(algo)
 
 
-def feature_matrix(feature_set, F, U, linked):
-    """F, U: DataFrames of 0/1 elements (strong, partial). linked: elements to drop for the shortcut test."""
+def feature_matrix(feature_set, F, U, linked, rule=None):
+    """F, U: DataFrames of 0/1 elements (strong, partial). linked: elements to drop for the shortcut test.
+    rule: 0/1 array, 'the catalog-based rules call this isolate resistant' (known from the catalog, never from labels)."""
     if feature_set == "presence":
         return F
     if feature_set == "presence+partial":
         return pd.concat([F, U.add_suffix("__partial")], axis=1)
+    if feature_set == "presence+rules":
+        return F.assign(rule_evidence=np.asarray(rule, dtype=int))
     if feature_set == "no_catalog":
         return F.drop(columns=[c for c in F.columns if c in set(linked)])
     raise ValueError(feature_set)
@@ -172,8 +180,10 @@ def run_all(meta, F, U, mapping, splits, base, fast=False, n_boot=N_BOOT, drugs=
         y_all = pd.to_numeric(meta[f"y_{drug}"], errors="coerce")
         linked = set(bl.evidence_elements(mapping, drug, F.columns)) | set(bl.evidence_elements(mapping, f"{drug}_with_multidrug", F.columns))
         base_pred = base[f"pred_{drug}"].to_numpy()
+        strong = bl.evidence_elements(mapping, drug, F.columns)
+        rule = F[strong].max(axis=1).to_numpy() if strong else np.zeros(len(F), dtype=int)
         for vname, (algo, fs) in variants.items():
-            X = feature_matrix(fs, F, U, linked).to_numpy(dtype=np.float32)
+            X = feature_matrix(fs, F, U, linked, rule).to_numpy(dtype=np.float32)
             for split in split_names:
                 col = splits[split]
                 chunks = []
@@ -246,12 +256,13 @@ def write_report(path, metrics, importance, fast):
         rows = []
         for split in SPLITS:
             for _, r in m[m["split"] == split].iterrows():
-                rows.append([split, r["model"], f"{r['n_R']} / {r['n_S']}", r["groups"], f3(r["sensitivity"]), f3(r["specificity"]),
+                rows.append([split, r["model"] + (" †" if r["model"] in EXPLORATORY else ""), f"{r['n_R']} / {r['n_S']}", r["groups"], f3(r["sensitivity"]), f3(r["specificity"]),
                              with_ci(r["mcc"], r["mcc_lo"], r["mcc_hi"]),
                              "" if r["model"].startswith("rules") else with_ci(r["d_mcc"], r["d_mcc_lo"], r["d_mcc_hi"]),
                              r["verdict"], "" if np.isnan(r["auc"]) else f3(r["auc"])])
         L.append(md_table(pd.DataFrame(rows, columns=["Split", "Model", "Test R / S", "Groups", "Sensitivity", "Specificity", "MCC (95% CI)",
                                                       "Difference in MCC vs rules (95% CI)", "Verdict", "AUC"])) + "\n")
+    L.append("† Exploratory: added after the first results were seen, so it is not part of the design fixed in advance.\n")
     # leak and shortcut summaries
     L.append("## How much does an unfair split inflate the result? (MCC, random5 minus fold5)\n")
     rows = []

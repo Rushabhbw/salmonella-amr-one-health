@@ -37,14 +37,19 @@ MIN_R_PER_FOLD = 10
 
 
 def assign_group_folds(group_sizes, k=K_FOLDS, seed=SEED):
-    """Largest groups first, each to the currently smallest fold (ties broken by a seeded shuffle)."""
-    order = group_sizes.sample(frac=1.0, random_state=seed).sort_values(ascending=False, kind="stable")
+    """Largest groups first, each to the currently smallest fold.
+
+    Fully deterministic and independent of the pandas version: group names are sorted, shuffled with a seeded numpy
+    generator, then stably sorted by size (largest first), so ties are broken by the seeded shuffle only."""
+    names = sorted(group_sizes.index)
+    shuffled = [names[i] for i in np.random.default_rng(seed).permutation(len(names))]
+    shuffled.sort(key=lambda g: -int(group_sizes[g]))          # list.sort is stable
     loads = np.zeros(k)
     assign = {}
-    for g, size in order.items():
+    for g in shuffled:
         f = int(np.argmin(loads))
         assign[g] = f
-        loads[f] += size
+        loads[f] += int(group_sizes[g])
     return assign
 
 

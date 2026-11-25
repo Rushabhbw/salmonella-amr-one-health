@@ -1,6 +1,6 @@
 # Salmonella AMR: resistome profiling and machine-learning prediction (One Health)
 
-**Status: work in progress. Data curation, validation, the feature table and the evaluation design are done. Baseline results, statistics, machine learning, figures and the report are next.**
+**Status: work in progress. Data curation, validation, the feature table, the evaluation design, the rule-based baseline and the machine-learning comparison are done. Statistics, figures and the report are next.**
 
 ## Goal
 Compare a rule-based baseline (AMRFinderPlus genes and mutations) with machine-learning models for predicting antimicrobial resistance in *Salmonella enterica*, using public NCBI Pathogen Detection data, and test how well models trained on food, animal and environmental isolates transfer to human clinical isolates. Full plan: [`docs/00_project_charter.md`](docs/00_project_charter.md).
@@ -13,6 +13,14 @@ Compare a rule-based baseline (AMRFinderPlus genes and mutations) with machine-l
 
 ## Validation done so far
 Our own AMRFinderPlus run (software 4.2.7, database 2026-10-29.1) on 300 isolates gave the same set of resistance elements as NCBI's stored results for 295 of 300 isolates (98.3%). Details: [`reports/amrfinder_concordance.md`](reports/amrfinder_concordance.md).
+
+## Findings so far
+- A rule-based baseline (genes NCBI links to each antibiotic) predicts resistance very well for tetracycline, ampicillin and ceftriaxone (sensitivity 0.96-0.99, specificity at least 0.993; see `reports/baseline_report.md`).
+- No machine-learning model beat the rules on any fair split. Of 36 comparisons (logistic regression, random forest, two gradient-boosting variants; three antibiotics; grouped cross-validation, human-isolate transfer, time), 27 were worse and 9 showed no clear difference. Tetracycline rules are essentially the ceiling.
+- On human clinical isolates the models missed resistance caused by genes that were rare or absent in the training isolates (for example blaCTX-M-15), which the rules cover through NCBI's catalog.
+- An unfair (random) split makes the models look nearly as good as the rules. Grouping by SNP cluster removes that illusion, which is why every reported result uses grouped, human-transfer or time splits.
+- Resistance can partly be predicted from co-occurring genes alone (shortcut test), but this did not help beat the rules.
+Details and caveats: `reports/ml_report.md` and `docs/feasibility_notes.md`.
 
 ## Workflow
 ![Workflow](docs/workflow_rulegraph.svg)

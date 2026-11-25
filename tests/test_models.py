@@ -122,3 +122,15 @@ def test_end_to_end_fast_run_writes_all_outputs(tmp_path):
     assert "FAST TEST RUN" in text and "## tetracycline" in text and "Shortcut test" in text
     assert (tmp_path / "ml_metrics_fast.tsv").exists() and (tmp_path / "ml_predictions_fast.tsv.gz").exists()
     assert ml.main(["--mapping", str(tmp_path / "missing.tsv")]) == 1
+
+
+def test_rules_feature_and_hybrid_models():
+    meta, F, U, mapping, splits, base, *_ = prepare()
+    rule = np.where(F["tet(A)"] + F["tet(B)"] > 0, 1, 0)
+    X = ml.feature_matrix("presence+rules", F, U, [], rule)
+    assert list(X.columns)[-1] == "rule_evidence" and X.shape[1] == F.shape[1] + 1 and (X["rule_evidence"].to_numpy() == rule).all()
+    assert "lr_rules" in ml.VARIANTS and "hgb_rules" in ml.EXPLORATORY
+    p, m, imp = ml.run_all(meta, F, U, mapping, splits, base, fast=True, n_boot=60, drugs=["tetracycline"],
+                           variants={"lr_rules": ("lr", "presence+rules")})
+    assert m[(m.model == "lr_rules") & (m.split == "fold5")].iloc[0]["mcc"] > 0.6
+

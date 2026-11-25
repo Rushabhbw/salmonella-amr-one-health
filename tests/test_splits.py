@@ -79,3 +79,12 @@ def test_random5_is_balanced_but_leaky():
     n_r, leak_r = sp.fold_leakage(out, "random5")
     assert leak_g == 0 and leak_r > 0.5 * n_r                                 # grouped folds are clean; random folds are not
 
+
+def test_group_fold_assignment_does_not_depend_on_input_order():
+    m = fake_meta()
+    sizes = m[m["in_primary_set"]]["cluster_group"].value_counts()
+    a = sp.assign_group_folds(sizes)
+    b = sp.assign_group_folds(sizes.sample(frac=1.0, random_state=7))          # same groups, different order
+    c = sp.assign_group_folds(sizes.sort_index(ascending=False))
+    assert a == b == c
+

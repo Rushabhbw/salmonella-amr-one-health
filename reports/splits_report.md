@@ -1,6 +1,6 @@
 # Evaluation splits report
 
-Generated: 2026-11-24 10:13  
+Generated: 2026-11-25 10:46  
 Script: `workflow/scripts/07_make_splits.py`  
 Seed 42; folds 5; time cutoff 2016. Only the primary dataset is split.
 
@@ -42,11 +42,11 @@ Seed 42; folds 5; time cutoff 2016. Only the primary dataset is split.
 
 | Fold | Isolates | Groups | R tetracycline | R ampicillin | R ceftriaxone | R ciprofloxacin |
 |---|---|---|---|---|---|---|
-| 0 | 1849 | 224 | 1143 | 532 | 386 | 558 |
-| 1 | 1849 | 225 | 1117 | 608 | 273 | 20 |
-| 2 | 1848 | 224 | 570 | 598 | 271 | 14 |
-| 3 | 1848 | 224 | 687 | 382 | 120 | 6 |
-| 4 | 1848 | 224 | 1201 | 243 | 127 | 5 |
+| 0 | 1849 | 224 | 1185 | 534 | 387 | 508 |
+| 1 | 1849 | 225 | 1095 | 598 | 248 | 9 |
+| 2 | 1848 | 224 | 544 | 563 | 279 | 71 |
+| 3 | 1848 | 224 | 695 | 397 | 125 | 5 |
+| 4 | 1848 | 224 | 1199 | 271 | 138 | 10 |
 
 Every fold has at least 10 resistant isolates for each core antibiotic.
 
